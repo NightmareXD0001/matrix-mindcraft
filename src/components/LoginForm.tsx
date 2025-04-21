@@ -17,7 +17,7 @@ const LoginForm = () => {
   
   // Initialize terminal text
   useEffect(() => {
-    const introText = '> Initializing Matrix Quest Protocol v1.0...\n> Establishing secure connection...\n> Enter credentials to continue.';
+    const introText = '> Initializing Matrix Cryptic Hunt Protocol v1.2.5...\n> Establishing secure connection...\n> Enter credentials to continue.';
     
     if (terminalTextRef.current) {
       typeText(terminalTextRef.current, introText, 40);
@@ -52,7 +52,7 @@ const LoginForm = () => {
       if (terminalTextRef.current) {
         await typeText(
           terminalTextRef.current, 
-          '\n> Authentication successful.\n> Welcome to the Matrix Quest Protocol.\n> Redirecting to secure area...',
+          '\n> Authentication successful.\n> Welcome to the Matrix MindCraft.\n> Redirecting to secure area...',
           30
         );
       }
@@ -155,8 +155,9 @@ const LoginForm = () => {
       </form>
       
       <div className="mt-4 text-xs text-matrix-dark text-center">
-        <p>MATRIX QUEST PROTOCOL v1.0</p>
+        <p>Matrix Cryptic Hunt Protocol v1.2.5</p>
         <p>AUTHORIZED ACCESS ONLY</p>
+        <p>&copy; 2025–2026 Matrix Clan. All rights reserved.</p>
       </div>
     </div>
   );
