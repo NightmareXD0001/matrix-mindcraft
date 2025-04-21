@@ -17,7 +17,7 @@ const LoginForm = () => {
   
   // Initialize terminal text
   useEffect(() => {
-    const introText = '> Initializing Matrix Cryptic Hunt Protocol v1.2.5...\n> Establishing secure connection...\n> Enter credentials to continue.';
+    const introText = '> Initializing Matrix MindCraft Protocol v1.2.5...\n> Establishing secure connection...\n> Enter credentials to continue.';
     
     if (terminalTextRef.current) {
       typeText(terminalTextRef.current, introText, 40);
@@ -155,7 +155,7 @@ const LoginForm = () => {
       </form>
       
       <div className="mt-4 text-xs text-matrix-dark text-center">
-        <p>Matrix Cryptic Hunt Protocol v1.2.5</p>
+        <p>Matrix MindCraft Protocol v1.2.5</p>
         <p>AUTHORIZED ACCESS ONLY</p>
         <p>&copy; 2025–2026 Matrix Clan. All rights reserved.</p>
       </div>
