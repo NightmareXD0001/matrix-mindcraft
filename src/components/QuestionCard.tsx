@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { triviaService, Question } from '@/utils/triviaService';
 import { typeText, playSystemSound, playTypeSound } from '@/utils/typingEffect';
 import { sendProgressWebhook } from '@/utils/webhookService';
-import { sendCompletedWebhook } from '@/utils/webhookService';
+import { sendFinishWebhook } from '@/utils/webhookService';
 
 interface QuestionCardProps {
   question: Question;
