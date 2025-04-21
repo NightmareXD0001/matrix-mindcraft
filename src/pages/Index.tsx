@@ -21,7 +21,7 @@ const Index = () => {
       {/* Main content */}
       <div className="z-10 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="matrix-heading text-4xl mb-2">MATRIX QUEST PROTOCOL</h1>
+          <h1 className="matrix-heading text-4xl mb-2">Matrix MindCraft Protocol</h1>
           <p className="matrix-text">Enter the Matrix. Complete the challenges. Free your mind.</p>
         </div>
         
