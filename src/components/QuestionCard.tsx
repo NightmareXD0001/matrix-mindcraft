@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { triviaService, Question } from '@/utils/triviaService';
 import { typeText, playSystemSound, playTypeSound } from '@/utils/typingEffect';
 import { sendProgressWebhook } from '@/utils/webhookService';
+import { sendCompletedWebhook } from '@/utils/webhookService';
 
 interface QuestionCardProps {
   question: Question;
@@ -61,7 +62,12 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
       // Send webhook notification about progress
       const username = triviaService.getCurrentUser() || 'unknown';
       const nextQuestion = triviaService.getCurrentQuestionNumber();
-      sendProgressWebhook(username, nextQuestion);
+      if (nextQuestion == 11) {
+        sendFinishWebhook(username);
+      }else{
+        sendProgressWebhook(username, nextQuestion);
+      }
+      
       
       // Delay before moving to next question
       setTimeout(() => {
