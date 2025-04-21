@@ -117,7 +117,7 @@ const Trivia = () => {
       
       {/* Footer */}
       <footer className="z-10 mt-8 text-center text-xs text-matrix-dark">
-        <p>MATRIX QUEST PROTOCOL v1.0</p>
+        <p>Matrix MindCraft Protocol v1.2.5</p>
         <p>ALL SYSTEMS OPERATIONAL</p>
       </footer>
     </div>
