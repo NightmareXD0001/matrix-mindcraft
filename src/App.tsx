@@ -14,7 +14,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/matrix-mindcraft">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/trivia" element={<Trivia />} />
