@@ -1,6 +1,6 @@
-
 import { useState, useRef, useEffect } from 'react';
-import { triviaService, Question } from '@/utils/triviaService';
+import { triviaService } from '@/utils/triviaService';
+import { type Question } from '@/data/questions';
 import { typeText, playSystemSound, playTypeSound } from '@/utils/typingEffect';
 import { sendProgressWebhook } from '@/utils/webhookService';
 
@@ -19,51 +19,42 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
   const questionTextRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Type out the question when component mounts
   useEffect(() => {
     if (questionTextRef.current) {
       typeText(questionTextRef.current, question.text, 40);
     }
     
-    // Load attempts
     setAttempts(triviaService.getAttempts());
   }, [question]);
   
-  // Check if hint should be shown (after 3 attempts)
   useEffect(() => {
     if (attempts >= 3 && question.hint) {
       setShowHint(true);
     }
   }, [attempts, question.hint]);
   
-  // Handle keypress sound effect
   const handleKeyPress = () => {
     playTypeSound();
   };
   
-  // Handle answer submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading || !answer.trim()) return;
     
     setLoading(true);
     
-    // Check the answer
     const isCorrect = triviaService.checkAnswer(answer);
     
-    // Update local attempts counter
     setAttempts(triviaService.getAttempts());
     
     if (isCorrect) {
       setFeedback('correct');
       playSystemSound('access');
       
-      // Send webhook notification about progress
       const username = triviaService.getCurrentUser() || 'unknown';
       const nextQuestion = triviaService.getCurrentQuestionNumber();
       sendProgressWebhook(username, nextQuestion);
       
-      // Delay before moving to next question
       setTimeout(() => {
         setAnswer('');
         setFeedback(null);
@@ -75,7 +66,6 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
       setFeedback('incorrect');
       playSystemSound('deny');
       
-      // Show feedback briefly
       setTimeout(() => {
         setFeedback(null);
         setLoading(false);
@@ -89,7 +79,6 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
   
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Question Display */}
       <div className="matrix-terminal mb-4">
         <h3 className="matrix-heading text-xl mb-4">Question {question.id}</h3>
         <div
@@ -105,7 +94,6 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
         )}
       </div>
       
-      {/* Feedback overlay */}
       {feedback && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
           <div className={`text-4xl font-bold ${feedback === 'correct' ? 'text-matrix-light animate-matrix-glow' : 'text-red-500'}`}>
@@ -114,7 +102,6 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
         </div>
       )}
       
-      {/* Answer Form */}
       <form onSubmit={handleSubmit} className="matrix-terminal">
         <div className="space-y-4">
           <div>
@@ -148,7 +135,6 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
         </div>
       </form>
       
-      {/* Attempts tracker */}
       <div className="mt-4 text-center text-matrix-dark">
         Attempts: {attempts}
       </div>
