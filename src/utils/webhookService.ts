@@ -5,7 +5,7 @@
  */
 
 // Discord webhook URL - this would typically be stored in an environment variable
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1363844306712002802/nU90v1kPTEJpLZG8cDiUHsOxKejBoPBugbfhBDC42Jtvy3Ysna0HimliiEWhbGnevfuS";
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL ?? "YOUR_DISCORD_WEBHOOK_URL";
 
 interface WebhookPayload {
   username?: string;
