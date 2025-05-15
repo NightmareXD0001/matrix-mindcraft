@@ -72,7 +72,7 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
       if (nextQuestion == 11) {
         await sendProgress(username, 0, true);
       }else{
-        await sendProgress(username, currentQuestionNumber);
+        await sendProgress(username, nextQuestion);
       }
       
       
