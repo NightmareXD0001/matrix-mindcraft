@@ -10,13 +10,10 @@ export default async function handler(req: Request): Promise<Response> {
     const body = await req.json();
     const { username, questionNumber, finished } = body;
 
-    const now = new Date();
-    const formattedDate = now.toISOString();
-
     const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
     if (!webhookUrl) {
-      return new Response(JSON.stringify({ error: "Missing webhook URL" }), {
+      return new Response(JSON.stringify({ error: "Webhook URL not set" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
@@ -24,35 +21,35 @@ export default async function handler(req: Request): Promise<Response> {
 
     const payload = {
       username: "Matrix Mindcraft",
-      avatar_url:
-        "https://media.discordapp.net/attachments/1263456923135774813/1361614453614841886/a54a97f65ec79a095f427ba588fab8d5.png",
+      avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
       embeds: [
         {
           title: "Matrix MindCraft Progress",
-          color: 2067276,
+          color: 0x1abc9c,
           fields: [
-            { name: "User", value: username, inline: false },
+            { name: "User", value: username, inline: true },
             {
-              name: "Reached",
-              value: finished ? "Finished" : `Question ${questionNumber}`,
-              inline: false,
+              name: "Progress",
+              value: finished ? "Finished!" : `Question ${questionNumber}`,
+              inline: true,
             },
-            { name: "Time", value: now.toLocaleString(), inline: false },
+            { name: "Time", value: new Date().toLocaleString(), inline: false },
           ],
-          timestamp: formattedDate,
-          footer: { text: "Matrix MindCraft Protocol v1.2.5" },
+          timestamp: new Date().toISOString(),
+          footer: { text: "Matrix MindCraft v1.2.5" },
         },
       ],
     };
 
-    const res = await fetch(webhookUrl, {
+    const response = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-      console.error(await res.text());
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("Discord webhook error:", errText);
       return new Response(JSON.stringify({ error: "Failed to send webhook" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
@@ -63,8 +60,8 @@ export default async function handler(req: Request): Promise<Response> {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (err) {
-    console.error("Error in webhook handler:", err);
+  } catch (error) {
+    console.error("Webhook error:", error);
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
