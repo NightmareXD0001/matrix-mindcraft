@@ -1,5 +1,6 @@
+
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import MatrixRain from '@/components/MatrixRain';
 import LoginForm from '@/components/LoginForm';
 import { triviaService } from '@/utils/triviaService';
@@ -26,6 +27,12 @@ const Index = () => {
         </div>
         
         <LoginForm />
+        
+        <div className="mt-8 text-center">
+          <Link to="/leaderboard" className="matrix-text hover:text-matrix-light transition-colors">
+            View Leaderboard
+          </Link>
+        </div>
       </div>
       
       <footer className="z-10 mt-12 text-center text-xs text-matrix-dark">

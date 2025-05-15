@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { triviaService } from '@/utils/triviaService';
 import MatrixRain from '@/components/MatrixRain';
 import QuestionCard from '@/components/QuestionCard';
@@ -63,12 +63,17 @@ const Trivia = () => {
             <p className="matrix-text mb-8">
               "You are The One, {username}."
             </p>
-            <button
-              onClick={handleLogout}
-              className="matrix-button px-6 py-2"
-            >
-              EXIT MATRIX
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={handleLogout}
+                className="matrix-button px-6 py-2"
+              >
+                EXIT MATRIX
+              </button>
+              <Link to="/leaderboard" className="matrix-button px-6 py-2">
+                VIEW LEADERBOARD
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -98,6 +103,9 @@ const Trivia = () => {
           <div className="matrix-text">
             Progress: {currentQuestionNumber}/{totalQuestions}
           </div>
+          <Link to="/leaderboard" className="matrix-button px-3 py-1 text-sm">
+            LEADERBOARD
+          </Link>
           <button
             onClick={handleLogout}
             className="matrix-button px-3 py-1 text-sm"

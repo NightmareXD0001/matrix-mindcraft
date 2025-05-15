@@ -12,7 +12,7 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
-  const [showHint, setShowHint] = useState(false);
+  const [showDiscordPrompt, setShowDiscordPrompt] = useState(false);
   const [attempts, setAttempts] = useState(0);
   
   const questionTextRef = useRef<HTMLDivElement>(null);
@@ -28,26 +28,27 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
     setAttempts(triviaService.getAttempts());
   }, [question]);
   
-  // Check if hint should be shown (after 3 attempts)
+  // Check if Discord prompt should be shown (after 3 attempts)
   useEffect(() => {
-    if (attempts >= 3 && question.hint) {
-      setShowHint(true);
+    if (attempts >= 3) {
+      setShowDiscordPrompt(true);
     }
-  }, [attempts, question.hint]);
+  }, [attempts]);
   
   // Handle keypress sound effect
   const handleKeyPress = () => {
     playTypeSound();
   };
+  
   const sendProgress = async (username: string, questionNumber: number, finished = false) => {
-  await fetch("/api/send-webhook", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, questionNumber, finished }),
-  });
-};
+    await fetch("/api/send-webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, questionNumber, finished }),
+    });
+  };
 
   // Handle answer submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,7 +82,7 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
         setAnswer('');
         setFeedback(null);
         setLoading(false);
-        setShowHint(false);
+        setShowDiscordPrompt(false);
         onComplete();
       }, 2000);
     } else {
@@ -110,10 +111,18 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
           className="matrix-text mb-4 min-h-[60px]"
         ></div>
         
-        {showHint && question.hint && (
+        {showDiscordPrompt && (
           <div className="mt-4 text-yellow-500 border-t border-yellow-900 pt-2">
-            <span className="block text-yellow-500 mb-1">HINT:</span>
-            {question.hint}
+            <span className="block text-yellow-500 mb-1">NEED ASSISTANCE?</span>
+            Join our Discord community for hints and guidance:
+            <a 
+              href="https://discord.gg/matrixclan" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block mt-2 text-matrix-light hover:underline"
+            >
+              discord.gg/matrixclan
+            </a>
           </div>
         )}
       </div>
