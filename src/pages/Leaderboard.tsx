@@ -1,25 +1,35 @@
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { triviaService } from '@/utils/triviaService';
 import MatrixRain from '@/components/MatrixRain';
 import LeaderboardTable from '@/components/LeaderboardTable';
-import { Progress } from '@/components/ui/progress';
+import { supabaseService } from '@/utils/supabaseService';
+import { useAuth } from '@/hooks/useAuth';
 
 const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const totalQuestions = triviaService.getTotalQuestions();
   
-  // Check authentication on load
   useEffect(() => {
-    // No need to be logged in to view the leaderboard
-    setLoading(false);
-  }, [navigate]);
+    const loadData = async () => {
+      try {
+        const count = await supabaseService.getTotalQuestions();
+        setTotalQuestions(count);
+      } catch (error) {
+        console.error("Error loading question count:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
   
-  // Handle back to trivia
-  const handleBackToTrivia = () => {
-    if (triviaService.isLoggedIn()) {
+  // Handle back to trivia/home
+  const handleBack = () => {
+    if (user) {
       navigate('/trivia');
     } else {
       navigate('/');
@@ -44,10 +54,10 @@ const Leaderboard = () => {
       <header className="z-10 flex justify-between items-center mb-8">
         <div className="matrix-heading text-2xl">Matrix MindCraft Leaderboard</div>
         <button
-          onClick={handleBackToTrivia}
+          onClick={handleBack}
           className="matrix-button px-3 py-1"
         >
-          {triviaService.isLoggedIn() ? 'BACK TO TRIVIA' : 'LOG IN'}
+          {user ? 'BACK TO TRIVIA' : 'BACK TO HOME'}
         </button>
       </header>
       

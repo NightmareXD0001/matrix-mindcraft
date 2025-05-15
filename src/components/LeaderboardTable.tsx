@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { triviaService } from '@/utils/triviaService';
+import { supabaseService } from '@/utils/supabaseService';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 
@@ -14,50 +14,27 @@ interface LeaderboardEntry {
 const LeaderboardTable = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   
   useEffect(() => {
-    // Load leaderboard data from localStorage
-    loadLeaderboardData();
+    const loadLeaderboard = async () => {
+      try {
+        // Get total questions count
+        const count = await supabaseService.getTotalQuestions();
+        setTotalQuestions(count);
+        
+        // Get leaderboard data
+        const data = await supabaseService.getLeaderboard();
+        setLeaderboard(data);
+      } catch (error) {
+        console.error("Error loading leaderboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadLeaderboard();
   }, []);
-  
-  const loadLeaderboardData = () => {
-    const totalQuestions = triviaService.getTotalQuestions();
-    const leaderboardData: LeaderboardEntry[] = [];
-    
-    // Scan all localStorage for data starting with matrix_quest_
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('matrix_quest_') && key !== 'matrix_quest_current_user') {
-        try {
-          const userData = JSON.parse(localStorage.getItem(key) || '{}');
-          const username = key.replace('matrix_quest_', '');
-          const currentQuestion = userData.currentQuestion || 1;
-          const completed = currentQuestion > totalQuestions;
-          const progress = Math.min(Math.floor((currentQuestion - 1) / totalQuestions * 100), 100);
-          
-          leaderboardData.push({
-            username,
-            currentQuestion: completed ? totalQuestions : currentQuestion - 1,
-            completed,
-            progress
-          });
-        } catch (error) {
-          console.error(`Error parsing data for ${key}:`, error);
-        }
-      }
-    }
-    
-    // Sort by progress (descending) and then by username (ascending)
-    leaderboardData.sort((a, b) => {
-      if (b.progress !== a.progress) {
-        return b.progress - a.progress;
-      }
-      return a.username.localeCompare(b.username);
-    });
-    
-    setLeaderboard(leaderboardData);
-    setLoading(false);
-  };
   
   if (loading) {
     return <div className="text-center py-8">Loading leaderboard data...</div>;
@@ -95,7 +72,7 @@ const LeaderboardTable = () => {
                 </span>
               </TableCell>
               <TableCell>
-                {entry.currentQuestion}/{triviaService.getTotalQuestions()}
+                {entry.currentQuestion}/{totalQuestions}
               </TableCell>
               <TableCell>
                 {entry.completed ? (

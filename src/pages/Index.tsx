@@ -2,18 +2,18 @@
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import MatrixRain from '@/components/MatrixRain';
-import LoginForm from '@/components/LoginForm';
-import { triviaService } from '@/utils/triviaService';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Check if user is already logged in
   useEffect(() => {
-    if (triviaService.isLoggedIn()) {
+    if (user) {
       navigate('/trivia');
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -26,11 +26,19 @@ const Index = () => {
           <p className="matrix-text">Enter the Matrix. Complete the challenges. Free your mind.</p>
         </div>
         
-        <LoginForm />
-        
-        <div className="mt-8 text-center">
-          <Link to="/leaderboard" className="matrix-text hover:text-matrix-light transition-colors">
-            View Leaderboard
+        <div className="flex flex-col space-y-4 items-center">
+          <Link 
+            to="/auth" 
+            className="matrix-button w-full max-w-sm py-3 px-6 text-center"
+          >
+            ENTER THE MATRIX
+          </Link>
+          
+          <Link 
+            to="/leaderboard" 
+            className="matrix-text hover:text-matrix-light transition-colors"
+          >
+            VIEW LEADERBOARD
           </Link>
         </div>
       </div>

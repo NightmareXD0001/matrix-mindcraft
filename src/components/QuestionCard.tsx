@@ -1,7 +1,9 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { triviaService, Question } from '@/utils/triviaService';
+import { supabaseService, Question } from '@/utils/supabaseService';
+import { useAuth } from '@/hooks/useAuth';
 import { typeText, playSystemSound, playTypeSound } from '@/utils/typingEffect';
+import { toast } from '@/components/ui/use-toast';
 
 interface QuestionCardProps {
   question: Question;
@@ -15,89 +17,88 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
   const [showDiscordPrompt, setShowDiscordPrompt] = useState(false);
   const [attempts, setAttempts] = useState(0);
   
+  const { user } = useAuth();
   const questionTextRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
   // Type out the question when component mounts
   useEffect(() => {
-    if (questionTextRef.current) {
+    if (questionTextRef.current && question) {
       typeText(questionTextRef.current, question.text, 40);
     }
     
-    // Load attempts
-    setAttempts(triviaService.getAttempts());
-  }, [question]);
-  
-  // Check if Discord prompt should be shown (after 3 attempts)
-  useEffect(() => {
-    if (attempts >= 3) {
-      setShowDiscordPrompt(true);
-    }
-  }, [attempts]);
+    // Load attempts if user is logged in
+    const loadAttempts = async () => {
+      if (user && question) {
+        const attemptsCount = await supabaseService.getQuestionAttempts(user.id, question.id);
+        setAttempts(attemptsCount);
+        if (attemptsCount >= 3) {
+          setShowDiscordPrompt(true);
+        }
+      }
+    };
+    
+    loadAttempts();
+  }, [question, user]);
   
   // Handle keypress sound effect
   const handleKeyPress = () => {
     playTypeSound();
   };
-  
-  const sendProgress = async (username: string, questionNumber: number, finished = false) => {
-    await fetch("/api/send-webhook", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, questionNumber, finished }),
-    });
-  };
 
   // Handle answer submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading || !answer.trim()) return;
+    if (loading || !answer.trim() || !user) return;
     
     setLoading(true);
     
-    // Check the answer
-    const isCorrect = triviaService.checkAnswer(answer);
-    
-    // Update local attempts counter
-    setAttempts(triviaService.getAttempts());
-    
-    if (isCorrect) {
-      setFeedback('correct');
-      playSystemSound('access');
+    try {
+      // Check the answer
+      const isCorrect = await supabaseService.checkAnswer(user.id, question.id, answer);
       
-      // Send webhook notification about progress
-      const username = triviaService.getCurrentUser() || 'unknown';
-      const nextQuestion = triviaService.getCurrentQuestionNumber();
-      if (nextQuestion == 11) {
-        await sendProgress(username, 0, true);
-      }else{
-        await sendProgress(username, nextQuestion);
+      // Update local attempts counter
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      
+      if (newAttempts >= 3) {
+        setShowDiscordPrompt(true);
       }
       
-      
-      // Delay before moving to next question
-      setTimeout(() => {
-        setAnswer('');
-        setFeedback(null);
-        setLoading(false);
-        setShowDiscordPrompt(false);
-        onComplete();
-      }, 2000);
-    } else {
-      setFeedback('incorrect');
-      playSystemSound('deny');
-      
-      // Show feedback briefly
-      setTimeout(() => {
-        setFeedback(null);
-        setLoading(false);
-        setAnswer('');
-        if (inputRef.current) {
-          inputRef.current.focus();
-        }
-      }, 1500);
+      if (isCorrect) {
+        setFeedback('correct');
+        playSystemSound('access');
+        
+        // Delay before moving to next question
+        setTimeout(() => {
+          setAnswer('');
+          setFeedback(null);
+          setLoading(false);
+          setShowDiscordPrompt(false);
+          onComplete();
+        }, 2000);
+      } else {
+        setFeedback('incorrect');
+        playSystemSound('deny');
+        
+        // Show feedback briefly
+        setTimeout(() => {
+          setFeedback(null);
+          setLoading(false);
+          setAnswer('');
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Error checking answer:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit answer. Please try again.",
+        variant: "destructive"
+      });
+      setLoading(false);
     }
   };
   
@@ -162,7 +163,7 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
             <button
               type="submit"
               className="matrix-button w-full py-2 px-4 text-center"
-              disabled={loading}
+              disabled={loading || !user}
             >
               {loading ? 'PROCESSING...' : 'SUBMIT'}
             </button>
