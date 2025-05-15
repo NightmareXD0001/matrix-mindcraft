@@ -2,8 +2,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { triviaService, Question } from '@/utils/triviaService';
 import { typeText, playSystemSound, playTypeSound } from '@/utils/typingEffect';
-import { sendProgressWebhook } from '@/utils/webhookService';
-import { sendFinishWebhook } from '@/utils/webhookService';
 
 interface QuestionCardProps {
   question: Question;
@@ -41,7 +39,16 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
   const handleKeyPress = () => {
     playTypeSound();
   };
-  
+  const sendProgress = async (username: string, questionNumber: number, finished = false) => {
+  await fetch("/api/send-webhook", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, questionNumber, finished }),
+  });
+};
+
   // Handle answer submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,9 +70,9 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
       const username = triviaService.getCurrentUser() || 'unknown';
       const nextQuestion = triviaService.getCurrentQuestionNumber();
       if (nextQuestion == 11) {
-        sendFinishWebhook(username);
+        await sendProgress(username, 0, true);
       }else{
-        sendProgressWebhook(username, nextQuestion);
+        await sendProgress(username, currentQuestionNumber);
       }
       
       
