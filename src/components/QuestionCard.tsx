@@ -39,15 +39,16 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
   const handleKeyPress = () => {
     playTypeSound();
   };
+  
   const sendProgress = async (username: string, questionNumber: number, finished = false) => {
-  await fetch("/api/send-webhook", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, questionNumber, finished }),
-  });
-};
+    await fetch("/api/send-webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, questionNumber, finished }),
+    });
+  };
 
   // Handle answer submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,8 +57,8 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
     
     setLoading(true);
     
-    // Check the answer
-    const isCorrect = triviaService.checkAnswer(answer);
+    // Check the answer using external API
+    const isCorrect = await triviaService.checkAnswer(answer);
     
     // Update local attempts counter
     setAttempts(triviaService.getAttempts());
@@ -71,10 +72,9 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
       const nextQuestion = triviaService.getCurrentQuestionNumber();
       if (nextQuestion == 11) {
         await sendProgress(username, 0, true);
-      }else{
+      } else {
         await sendProgress(username, nextQuestion);
       }
-      
       
       // Delay before moving to next question
       setTimeout(() => {

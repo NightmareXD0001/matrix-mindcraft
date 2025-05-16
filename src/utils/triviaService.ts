@@ -3,6 +3,7 @@
  * Trivia Service for Matrix Quest Protocol
  * Manages questions, answers, and user progress
  */
+import { apiService } from './apiService';
 
 export interface Question {
   id: number;
@@ -84,24 +85,13 @@ interface UserProgress {
   isLoggedIn: boolean;
 }
 
-// Mock user database (would be server-side in a real application)
-// These are the staff-generated accounts
-const USERS = [
-  { username: "neo_01", password: "followthewhiterabbit" },
-  { username: "trinity_07", password: "knwoledgeispower" },
-  { username: "morpheus_66", password: "redorblue" },
-  { username: "agent_smith", password: "virus" },
-  { username: "oracle_42", password: "knowthyself" }
-];
-
 export const triviaService = {
   // User authentication
-  login(username: string, password: string): boolean {
-    const user = USERS.find(
-      u => u.username === username && u.password === password
-    );
+  async login(username: string, password: string): Promise<boolean> {
+    // Call external API for authentication
+    const isAuthenticated = await apiService.login(username, password);
     
-    if (user) {
+    if (isAuthenticated) {
       // Initialize or load user progress
       const existingProgress = localStorage.getItem(`matrix_quest_${username}`);
       const progress: UserProgress = existingProgress 
@@ -177,8 +167,8 @@ export const triviaService = {
     return progress.currentQuestion;
   },
   
-  // Check an answer
-  checkAnswer(answer: string): boolean {
+  // Check an answer using external API
+  async checkAnswer(answer: string): Promise<boolean> {
     const username = this.getCurrentUser();
     if (!username) return false;
     
@@ -186,27 +176,25 @@ export const triviaService = {
     if (!progressData) return false;
     
     const progress: UserProgress = JSON.parse(progressData);
-    const question = QUESTIONS.find(q => q.id === progress.currentQuestion);
-    
-    if (!question) return false;
+    const questionNumber = progress.currentQuestion;
     
     // Increment attempt counter
-    if (!progress.attempts[question.id]) {
-      progress.attempts[question.id] = 0;
+    if (!progress.attempts[questionNumber]) {
+      progress.attempts[questionNumber] = 0;
     }
-    progress.attempts[question.id]++;
+    progress.attempts[questionNumber]++;
     
-    // Check if answer is correct (case insensitive)
-    const isCorrect = answer.trim().toLowerCase() === question.answer.toLowerCase();
+    // Save the attempts count
+    localStorage.setItem(`matrix_quest_${username}`, JSON.stringify(progress));
+    
+    // Call external API to check the answer
+    const isCorrect = await apiService.checkAnswer(questionNumber, answer, username);
     
     if (isCorrect) {
       // Move to the next question
       progress.currentQuestion++;
       
       // Save progress
-      localStorage.setItem(`matrix_quest_${username}`, JSON.stringify(progress));
-    } else {
-      // Just save the attempts
       localStorage.setItem(`matrix_quest_${username}`, JSON.stringify(progress));
     }
     

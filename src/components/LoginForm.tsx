@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { triviaService } from '@/utils/triviaService';
 import { useNavigate } from 'react-router-dom';
@@ -39,10 +38,8 @@ const LoginForm = () => {
       await typeText(terminalTextRef.current, `\n> Authenticating user: ${username}...`, 30);
     }
     
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const success = triviaService.login(username, password);
+    // Authenticate with external API
+    const success = await triviaService.login(username, password);
     
     if (success) {
       setAccessMessageText('ACCESS GRANTED');
