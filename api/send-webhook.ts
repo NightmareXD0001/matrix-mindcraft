@@ -1,4 +1,3 @@
-
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
@@ -11,28 +10,22 @@ export default async function handler(req: Request): Promise<Response> {
     const body = await req.json();
     const { username, questionNumber, finished } = body;
 
-    // Using Vercel environment variable - this is only available on the server-side
     const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
     if (!webhookUrl) {
-      console.error("Discord webhook URL not configured");
       return new Response(JSON.stringify({ error: "Webhook URL not set" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    // Format the current time
-    const now = new Date();
-    const formattedDate = now.toISOString();
-
     const payload = {
       username: "Matrix Mindcraft",
-      avatar_url: "https://media.discordapp.net/attachments/1263456923135774813/1361614453614841886/a54a97f65ec79a095f427ba588fab8d5.png?ex=68074ec7&is=6805fd47&hm=9aaf8333e79b3b1d3580aec858f52788a84dd3b4f1bfc6c5850ca482c3676355&=&format=webp&quality=lossless&width=490&height=490",
+      avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
       embeds: [
         {
           title: "Matrix MindCraft Progress",
-          color: 2067276, // Matrix green color
+          color: 0x1abc9c,
           fields: [
             { name: "User", value: username, inline: true },
             {
@@ -40,15 +33,14 @@ export default async function handler(req: Request): Promise<Response> {
               value: finished ? "Finished!" : `Question ${questionNumber}`,
               inline: true,
             },
-            { name: "Time", value: now.toLocaleString(), inline: false },
+            { name: "Time", value: new Date().toLocaleString(), inline: false },
           ],
-          timestamp: formattedDate,
+          timestamp: new Date().toISOString(),
           footer: { text: "Matrix MindCraft v1.2.5" },
         },
       ],
     };
 
-    // Send the webhook to Discord
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

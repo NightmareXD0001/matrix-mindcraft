@@ -1,9 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { supabaseService, Question } from '@/utils/supabaseService';
-import { useAuth } from '@/hooks/useAuth';
+import { triviaService, Question } from '@/utils/triviaService';
 import { typeText, playSystemSound, playTypeSound } from '@/utils/typingEffect';
-import { toast } from '@/components/ui/use-toast';
 
 interface QuestionCardProps {
   question: Question;
@@ -14,91 +12,91 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
-  const [showDiscordPrompt, setShowDiscordPrompt] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const [attempts, setAttempts] = useState(0);
   
-  const { user } = useAuth();
   const questionTextRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
   // Type out the question when component mounts
   useEffect(() => {
-    if (questionTextRef.current && question) {
+    if (questionTextRef.current) {
       typeText(questionTextRef.current, question.text, 40);
     }
     
-    // Load attempts if user is logged in
-    const loadAttempts = async () => {
-      if (user && question) {
-        const attemptsCount = await supabaseService.getQuestionAttempts(user.id, question.id);
-        setAttempts(attemptsCount);
-        if (attemptsCount >= 3) {
-          setShowDiscordPrompt(true);
-        }
-      }
-    };
-    
-    loadAttempts();
-  }, [question, user]);
+    // Load attempts
+    setAttempts(triviaService.getAttempts());
+  }, [question]);
+  
+  // Check if hint should be shown (after 3 attempts)
+  useEffect(() => {
+    if (attempts >= 3 && question.hint) {
+      setShowHint(true);
+    }
+  }, [attempts, question.hint]);
   
   // Handle keypress sound effect
   const handleKeyPress = () => {
     playTypeSound();
   };
+  const sendProgress = async (username: string, questionNumber: number, finished = false) => {
+  await fetch("/api/send-webhook", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, questionNumber, finished }),
+  });
+};
 
   // Handle answer submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading || !answer.trim() || !user) return;
+    if (loading || !answer.trim()) return;
     
     setLoading(true);
     
-    try {
-      // Check the answer
-      const isCorrect = await supabaseService.checkAnswer(user.id, question.id, answer);
+    // Check the answer
+    const isCorrect = triviaService.checkAnswer(answer);
+    
+    // Update local attempts counter
+    setAttempts(triviaService.getAttempts());
+    
+    if (isCorrect) {
+      setFeedback('correct');
+      playSystemSound('access');
       
-      // Update local attempts counter
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-      
-      if (newAttempts >= 3) {
-        setShowDiscordPrompt(true);
+      // Send webhook notification about progress
+      const username = triviaService.getCurrentUser() || 'unknown';
+      const nextQuestion = triviaService.getCurrentQuestionNumber();
+      if (nextQuestion == 11) {
+        await sendProgress(username, 0, true);
+      }else{
+        await sendProgress(username, nextQuestion);
       }
       
-      if (isCorrect) {
-        setFeedback('correct');
-        playSystemSound('access');
-        
-        // Delay before moving to next question
-        setTimeout(() => {
-          setAnswer('');
-          setFeedback(null);
-          setLoading(false);
-          setShowDiscordPrompt(false);
-          onComplete();
-        }, 2000);
-      } else {
-        setFeedback('incorrect');
-        playSystemSound('deny');
-        
-        // Show feedback briefly
-        setTimeout(() => {
-          setFeedback(null);
-          setLoading(false);
-          setAnswer('');
-          if (inputRef.current) {
-            inputRef.current.focus();
-          }
-        }, 1500);
-      }
-    } catch (error) {
-      console.error("Error checking answer:", error);
-      toast({
-        title: "Error",
-        description: "Failed to submit answer. Please try again.",
-        variant: "destructive"
-      });
-      setLoading(false);
+      
+      // Delay before moving to next question
+      setTimeout(() => {
+        setAnswer('');
+        setFeedback(null);
+        setLoading(false);
+        setShowHint(false);
+        onComplete();
+      }, 2000);
+    } else {
+      setFeedback('incorrect');
+      playSystemSound('deny');
+      
+      // Show feedback briefly
+      setTimeout(() => {
+        setFeedback(null);
+        setLoading(false);
+        setAnswer('');
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 1500);
     }
   };
   
@@ -112,18 +110,10 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
           className="matrix-text mb-4 min-h-[60px]"
         ></div>
         
-        {showDiscordPrompt && (
+        {showHint && question.hint && (
           <div className="mt-4 text-yellow-500 border-t border-yellow-900 pt-2">
-            <span className="block text-yellow-500 mb-1">NEED ASSISTANCE?</span>
-            Join our Discord community for hints and guidance:
-            <a 
-              href="https://discord.gg/matrixclan" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="block mt-2 text-matrix-light hover:underline"
-            >
-              discord.gg/matrixclan
-            </a>
+            <span className="block text-yellow-500 mb-1">HINT:</span>
+            {question.hint}
           </div>
         )}
       </div>
@@ -163,7 +153,7 @@ const QuestionCard = ({ question, onComplete }: QuestionCardProps) => {
             <button
               type="submit"
               className="matrix-button w-full py-2 px-4 text-center"
-              disabled={loading || !user}
+              disabled={loading}
             >
               {loading ? 'PROCESSING...' : 'SUBMIT'}
             </button>
