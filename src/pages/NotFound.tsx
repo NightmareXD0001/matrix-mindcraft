@@ -88,23 +88,23 @@ const NotFound = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-matrix-black overflow-hidden">
       <canvas 
         ref={canvasRef} 
         className="absolute top-0 left-0 w-full h-full z-0"
       />
       
       <div className="relative z-10 text-center px-6">
-        <div className="relative bg-black/70 backdrop-blur-sm p-8 rounded-lg border border-matrix-terminal/30 animate-matrix-glow">
-          <h1 className="text-6xl font-bold mb-4 text-matrix-terminal">404</h1>
-          <div className="text-2xl text-matrix-terminal mb-6 font-matrix">SYSTEM ERROR</div>
-          <p className="text-xl text-matrix-terminal/80 mb-8 font-matrix">
+        <div className="relative bg-matrix-charcoal/70 backdrop-blur-sm p-8 rounded-lg border border-matrix-green/30 animate-pulse-glow">
+          <h1 className="text-6xl font-bold mb-4 text-matrix-green">404</h1>
+          <div className="text-2xl text-matrix-green mb-6 font-mono">SYSTEM ERROR</div>
+          <p className="text-xl text-matrix-green/80 mb-8 font-mono">
             THE PATH YOU'RE LOOKING FOR DOESN'T EXIST IN THE MATRIX
           </p>
           <Button 
             variant="outline" 
-            className="bg-transparent border-matrix-terminal text-matrix-terminal hover:bg-matrix-dark hover:text-white group transition-all duration-300"
-            onClick={() => window.location.href = "/"}
+            className="bg-transparent border-matrix-green text-matrix-green hover:bg-matrix-green/10 hover:text-white group transition-all duration-300"
+            onClick={() => window.location.href = "https://thematrixclan.com"}
           >
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:translate-x-[-2px] transition-transform" />
             RETURN TO HOME
